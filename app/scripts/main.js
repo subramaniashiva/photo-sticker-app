@@ -72,6 +72,28 @@
         $stickerModal.style.display = 'none';
       }
     });
+    var dragged;
+    document.addEventListener('dragstart', function(event) {
+          console.log('drag start called');
+          dragged = event.target;
+    });
+    $canvasArea.addEventListener('drop', function(event){
+      event.preventDefault();
+
+      var img = document.createElement('img');
+
+      var canvas = document.createElement("canvas")
+      var context = canvas.getContext("2d")
+      context.drawImage(dragged, 0, 0) // i assume that img.src is your blob url
+      var dataurl = canvas.toDataURL("image/jpg", 1);
+      img.src = dataurl;
+
+      var parent = this;
+      img.onload = function() {
+        parent.appendChild(img);
+      };
+      
+    });
     $stickerForm.addEventListener('submit', function(e) {
       var temp, title, $tempDiv = document.createElement('div'),
       $stickTemp = document.createElement('div');
@@ -80,7 +102,10 @@
       title = $stickerInput.value.trim();
       if(title && files && files.length === 1) {
         stickerImg = PHOTOAPP.addImgFileToDom($tempDiv, files[0], false);
+        stickerImg.draggable = true;
         stickerImg.classList.add('sticker-img');
+
+
 
         temp = $stickerTemplate.innerHTML;
         temp = temp.replace('{{stickerImg}}', $tempDiv.innerHTML);

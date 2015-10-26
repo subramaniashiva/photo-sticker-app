@@ -69,6 +69,11 @@ body {
 .main-container {
   border-right: 1px solid #A5A5A5;
 }
+.canvas-area {
+  width: 600px;
+  height: 600px;
+  background: #ccc;
+}
 .sticker-template {
   display: none;
 }
