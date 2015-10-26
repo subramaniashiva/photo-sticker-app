@@ -21,14 +21,11 @@
     var img, reader;
     if(fileObj) {
       img = document.createElement("img");
-      img.classList.add("obj");
       img.file = fileObj;
-
-      reader = new FileReader();
-      reader.onload = (function(aImg) { 
-        return function(e) { aImg.src = e.target.result; }; 
-      })(img);
-      reader.readAsDataURL(fileObj);
+      img.src = window.URL.createObjectURL(fileObj);
+      img.onload = function() {
+        window.URL.revokeObjectURL(this.src);
+      }
     }
     return img;
   }
@@ -54,7 +51,8 @@
     $stickerModal = document.getElementById('sticker-modal'),
     $stickerForm = document.getElementById('sticker-form'),
     $stickerInput = document.getElementById('sticker-input'),
-    $stickerUploadBtn = document.getElementById('sticker-upload');
+    $stickerUploadBtn = document.getElementById('sticker-upload'),
+    $stickerTemplate = document.getElementById('sticker-template');
 
     $photoUploadBtn.addEventListener('change', function() {
       files = this.files;
@@ -75,13 +73,23 @@
       }
     });
     $stickerForm.addEventListener('submit', function(e) {
+      var temp, title, $tempDiv = document.createElement('div'),
+      $stickTemp = document.createElement('div');
       e.preventDefault();
       files = $stickerUploadBtn.files;
-      if($stickerInput.value.trim() && files && files.length === 1) {
-        stickerImg = PHOTOAPP.addImgFileToDom($stickerArea, files[0], false);
-        stickerImg.height = "150";
-        stickerImg.width = "150";
+      title = $stickerInput.value.trim();
+      if(title && files && files.length === 1) {
+        stickerImg = PHOTOAPP.addImgFileToDom($tempDiv, files[0], false);
         stickerImg.classList.add('sticker-img');
+
+        temp = $stickerTemplate.innerHTML;
+        temp = temp.replace('{{stickerImg}}', $tempDiv.innerHTML);
+        temp = temp.replace('{{title}}', title);
+
+        $stickTemp.innerHTML = temp;
+
+        $stickerArea.insertBefore($stickTemp.getElementsByClassName('sticker')[0], $stickerArea.firstChild);
+
         $stickerModal.style.display = 'none';
       }
     });

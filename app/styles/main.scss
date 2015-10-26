@@ -69,6 +69,21 @@ body {
 .main-container {
   border-right: 1px solid #A5A5A5;
 }
+.sticker-template {
+  display: none;
+}
+.sticker {
+  .sticker-img {
+    width: 150px;
+    height: 150px;
+  }
+  .title {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    font-weight: bold;
+  }
+}
 .sticker-modal {
   display:none;
   position: fixed;
