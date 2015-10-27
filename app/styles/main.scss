@@ -78,6 +78,8 @@ body {
 }
 .dropped-sticker {
   position: absolute;
+  width: 150px;
+  height: 150px;
 }
 .main-image {
   max-width: 100%;
@@ -86,6 +88,7 @@ body {
   display: none;
 }
 .sticker {
+  position: relative;
   .sticker-img {
     width: 150px;
     height: 150px;
@@ -95,6 +98,17 @@ body {
     margin: 0 auto;
     text-align: center;
     font-weight: bold;
+  }
+  .sticker-remove {
+    position: absolute;
+    right: 0;
+    cursor: pointer;
+    display: none;
+  }
+  &:hover {
+    .sticker-remove {
+      display: block;
+    }
   }
 }
 .sticker-modal {
