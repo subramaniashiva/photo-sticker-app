@@ -70,9 +70,17 @@ body {
   border-right: 1px solid #A5A5A5;
 }
 .canvas-area {
-  width: 600px;
-  height: 600px;
+  display: inline-block;
+  width: auto;
+  height: auto;
   background: #ccc;
+  position: relative;
+}
+.dropped-sticker {
+  position: absolute;
+}
+.main-image {
+  max-width: 100%;
 }
 .sticker-template {
   display: none;
