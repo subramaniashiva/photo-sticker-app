@@ -9,7 +9,10 @@
     }
     return node;
   }
+  var stickers = {};
+  var photos = {};
   PHOTOAPP.photoAdded = false;
+  PHOTOAPP.currentDraggedImage = null;
   PHOTOAPP.isFileAnImage = function(fileObj) {
     var imageType = false,
         matchString = /^image\//;
@@ -31,9 +34,46 @@
     }
     return reader;
   }
-
+  PHOTOAPP.addSticker = function(id, srcString) {
+    if(!stickers.id) {
+      stickers.id = srcString;
+    }
+  }
+  PHOTOAPP.deleteSticker = function(id) {
+    if(stickers.id) {
+      stickers.id = null;
+    }
+  }
+  PHOTOAPP.updateSticker = function(id, srcString) {
+    if(stickers.id && srcString) {
+      stickers.id = srcString;
+    }
+  }
+  PHOTOAPP.getSticker = function(id) {
+    return stickers.id
+  }
+  PHOTOAPP.addPhoto = function(id, srcString) {
+    if(!photos.id) {
+      photos.id = srcString
+    }
+  }
+  PHOTOAPP.deletePhoto = function(id) {
+    if(photos.id) {
+      photos.id = null;
+    }
+  }
+  PHOTOAPP.updatePhoto = function(id, srcString) {
+    if(photos.id && srcString) {
+      photos.id = srcString;
+    }
+  }
+  PHOTOAPP.getPhoto = function(id) {
+    return photos.id;
+  }
   PHOTOAPP.init = function() {
     var files;
+    var stickerId = 0;
+    var photoId = 0;
     var $photoUploadBtn = document.getElementById('photo-upload'),
     $canvasArea = document.getElementById('canvas-area'),
     $stickerArea = document.getElementById('sticker-area'),
@@ -46,6 +86,8 @@
 
     $stickerArea.addEventListener('click', function(e) {
       if(e.target.classList.contains('sticker-remove')) {
+        var stickerImg = e.target.parentElement.getElementsByClassName('sticker-img')[0];
+        PHOTOAPP.deleteSticker(stickerImg.dataset.stickerId);
         e.target.parentElement.parentElement.removeChild(e.target.parentElement);
       }
     });
@@ -55,13 +97,15 @@
       if(files.length === 1) {
         reader = PHOTOAPP.filesToImgElem(files[0]);
         reader.onload = function(e) {
+          PHOTOAPP.addPhoto(photoId, e.target.result);
+          img.dataset.photoId = photoId;
+          photoId++;
           img.src = e.target.result;
           img.classList.add('main-image');
           PHOTOAPP.removeChildNodes($canvasArea);
           $canvasArea.appendChild(img);
           PHOTOAPP.photoAdded = true;
-        }
-        
+        }  
       }
     });
 
@@ -76,11 +120,10 @@
         $stickerModal.style.display = 'none';
       }
     });
-    var dragged;
     document.addEventListener('dragstart', function(event) {
         var classList = event.target.classList;
         if(PHOTOAPP.photoAdded && (classList.contains('sticker-img') || classList.contains('dropped-sticker'))) {
-          dragged = event.target;
+          PHOTOAPP.currentDraggedImage = event.target;
         }
     });
     $canvasArea.addEventListener('drop', function(event) {
@@ -88,11 +131,11 @@
       console.log(event);
       if(PHOTOAPP.photoAdded) {
         event.preventDefault();
-        if(dragged) {
-          classList = dragged.classList;
+        if(PHOTOAPP.currentDraggedImage) {
+          classList = PHOTOAPP.currentDraggedImage.classList;
           if(classList.contains('sticker-img')) {
             img = document.createElement('img');
-            img.src = dragged.src;
+            img.src = PHOTOAPP.currentDraggedImage.src;
             img.classList.add('dropped-sticker');
             img.style.left = (event.offsetX - 75) + "px";
             img.style.top = (event.offsetY - 75) + "px";
@@ -101,7 +144,7 @@
             parent.appendChild(img);
             };
           } else if (classList.contains('dropped-sticker')) {
-            img = dragged;
+            img = PHOTOAPP.currentDraggedImage;
             img.style.left = (event.offsetX - 75) + "px";
             img.style.top = (event.offsetY - 75) + "px";
           }
@@ -121,9 +164,10 @@
         //var left = viewportOffset.left;
 
         
-        dragged = null;
+        PHOTOAPP.currentDraggedImage = null;
       }
     });
+    
     $stickerForm.addEventListener('submit', function(e) {
       var reader, temp, title, $tempDiv = document.createElement('div'),
       stickerImg = document.createElement('img'),
@@ -134,8 +178,11 @@
       if(title && files && files.length === 1) {
         reader = PHOTOAPP.filesToImgElem(files[0], stickerImg);
         reader.onload = function(e) {
-          stickerImg.src = e.target.result;
+          PHOTOAPP.addSticker(stickerId, e.target.result);
 
+          stickerImg.src = e.target.result;
+          stickerImg.dataset.stickerId = stickerId;
+          stickerId++;
           $tempDiv.appendChild(stickerImg);
 
           stickerImg.draggable = true;
