@@ -2,9 +2,21 @@
 (function(PHOTOAPP){
   var stickers = {};
   var photos = {};
+  var currentPhotoId = 0;
+  var currentLibStickerId = 0;
+  var currentStickersOnPhoto = 0;
 
   PHOTOAPP.photoAdded = false;
   PHOTOAPP.currentDraggedImage = null;
+  PHOTOAPP.getCurrentPhotoId = function() {
+    return currentPhotoId;
+  };
+  PHOTOAPP.getCurrentLibStickerId = function() {
+    return currentLibStickerId;
+  };
+  PHOTOAPP.getCurrentStickersOnPhoto = function() {
+    return currentStickersOnPhoto;
+  }
 
   PHOTOAPP.isFileAnImage = function(fileObj) {
     var imageType = false,
@@ -37,13 +49,15 @@
       return JSON.parse(localStorage.getItem(key));
     }
   }
-  PHOTOAPP.addLibSticker = function(id, srcString, name) {
-    id = id.toString();
+  PHOTOAPP.addLibSticker = function(srcString, name) {
+    var id = currentLibStickerId;
     if(!stickers[id]) {
       stickers[id] = {};
       stickers[id].srcString = srcString;
       stickers[id].name = name;
       PHOTOAPP.saveItem('stickersLib', stickers);
+      currentLibStickerId++;
+      PHOTOAPP.saveItem('stickersLibId', currentLibStickerId);
       return stickers[id];
     }
     return false;
@@ -72,13 +86,15 @@
   PHOTOAPP.getAllLibStickers = function() {
     return stickers;
   }
-  PHOTOAPP.addPhoto = function(id, srcString) {
-    id = id.toString();
+  PHOTOAPP.addPhoto = function(srcString) {
+    var id = currentPhotoId;
     if(!photos[id]) {
       photos[id] = {};
       photos[id].srcString = srcString;
       photos[id].stickers = [];
       PHOTOAPP.saveItem('photos', photos);
+      currentPhotoId++;
+      PHOTOAPP.saveItem('photoId', currentPhotoId);
       return photos[id];
     }
   }
@@ -106,15 +122,17 @@
   PHOTOAPP.getAllPhotos = function() {
     return photos;
   }
-  PHOTOAPP.addStickerToPhoto = function(photoId, stickerId, stickerString, left, top) {
+  PHOTOAPP.addStickerToPhoto = function(photoId, stickerString, left, top) {
     if(photos[photoId.toString()]) {
       var stickerObj = {};
-      stickerObj.stickerId = stickerId.toString();
+      stickerObj.stickerId = currentStickersOnPhoto.toString();
       stickerObj.srcString = stickerString;
       stickerObj.left = left;
       stickerObj.top = top;
       photos[photoId].stickers.push(stickerObj);
       PHOTOAPP.saveItem('photos', photos);
+      currentStickersOnPhoto++;
+      PHOTOAPP.saveItem('stickersOnPhotoId', currentStickersOnPhoto);
       return photos[photoId];
     }
     return false;
@@ -142,11 +160,23 @@
   PHOTOAPP.init = function() {
     var initLib = PHOTOAPP.getSavedItem('stickersLib');
     var initPhotos = PHOTOAPP.getSavedItem('photos');
+    var photoCount = PHOTOAPP.getSavedItem('photoId'),
+        libStickerCount = PHOTOAPP.getSavedItem('stickersLibId'),
+        stickersOnPhotoCount = PHOTOAPP.getSavedItem('stickersOnPhotoId');
     if(initLib) {
       stickers = initLib;
     }
     if(initPhotos) {
       photos = initPhotos;
+    }
+    if(photoCount) {
+      currentPhotoId = photoCount;
+    }
+    if(libStickerCount) {
+      currentLibStickerId = libStickerCount;
+    }
+    if(stickersOnPhotoCount) {
+      currentStickersOnPhoto = stickersOnPhotoCount;
     }
   }
   PHOTOAPP.init();

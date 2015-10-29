@@ -13,9 +13,9 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 	var files;
-	var stickerId = 0;
-	var photoId = 0;
-	var addedStickerId = 0;
+	var stickerId = PHOTOAPP.getCurrentLibStickerId();
+	var photoId = PHOTOAPP.getCurrentPhotoId();
+	var addedStickerId = PHOTOAPP.getCurrentStickersOnPhoto();
 	var $photoUploadBtn = document.getElementById('photo-upload'),
 	$canvasArea = document.getElementById('canvas-area'),
 	$stickerArea = document.getElementById('sticker-area'),
@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
   $stickerImgTemplate = document.getElementById('sticker-img-template'),
   $photoStickerTemplate = document.getElementById('photo-sticker-template'),
   $photoLink = document.getElementById('choose-photo-link'),
-  $stickerLink = document.getElementById('choose-sticker-link');
+  $stickerLink = document.getElementById('choose-sticker-link'),
+  $startOver = document.getElementById('start-over');
 
   function initApplicationDom() {
     var i, photos = PHOTOAPP.getAllPhotos(),
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tempStickers = '',
         photoStickerTemplate = '',
         tempPhotoStickers = '',
-        stickArray;
+        stickArray, photoAdded = false;
     if(photos) {
       for(i in photos) {
         if(photos[i]) {
@@ -58,8 +59,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
           }
           $canvasArea.innerHTML = imgTemplate + tempPhotoStickers;
-          PHOTOAPP.photoAdded = true;
+          photoAdded = true;
         }
+      }
+      PHOTOAPP.photoAdded = photoAdded;
+      if(photoAdded) {
+        $startOver.removeAttribute('disabled');
+        $photoLink.setAttribute('disabled', 'true');
       }
     }
     if(libStickers) {
@@ -85,38 +91,53 @@ document.addEventListener('DOMContentLoaded', function() {
 	    PHOTOAPP.deleteLibSticker(stickerImg.dataset.stickerId);
 	  }
 	});
-
+  function clearCurrentPhoto() {
+    var oldImage = document.getElementsByClassName('main-image');
+    
+    if(oldImage && oldImage.length > 0) {
+        PHOTOAPP.deletePhoto(oldImage[0].dataset.photoId);
+    }
+    DOMHELPER.removeChildNodes($canvasArea);
+  }
 	$photoUploadBtn.addEventListener('change', function() {
-	  var img = document.createElement('img'), reader, oldImage = document.getElementsByClassName('main-image');
+	  var img = document.createElement('img'), reader, 
+    oldImage = document.getElementsByClassName('main-image');
 	  files = this.files;
+    $photoLink.setAttribute('disabled', 'true');
+
+    $startOver.removeAttribute('disabled');
 	  if(files.length === 1) {
+      clearCurrentPhoto();
 	    reader = PHOTOAPP.filesToImgElem(files[0]);
 	    reader.onload = function(e) {
-        if(oldImage && oldImage.length > 0) {
-          PHOTOAPP.deletePhoto(oldImage[0].dataset.photoId);
-        }
-	      PHOTOAPP.addPhoto(photoId, e.target.result);
+        
 	      img.dataset.photoId = photoId;
 	      img.src = e.target.result;
 	      img.classList.add('main-image');
-	      DOMHELPER.removeChildNodes($canvasArea);
 	      $canvasArea.appendChild(img);
 
-	      PHOTOAPP.addPhoto(photoId, e.target.result);
+	      PHOTOAPP.addPhoto(e.target.result);
 	      
 	      PHOTOAPP.photoAdded = true;
-	      photoId++;
+	      photoId = PHOTOAPP.getCurrentPhotoId();
 	    }  
 	  }
 	});
   $photoLink.addEventListener('click', function() {
     $photoUploadBtn.click();
   });
-  
+  $startOver.addEventListener('click', function() {
+    clearCurrentPhoto();
+    $photoLink.removeAttribute('disabled');
+    this.setAttribute('disabled', 'true');
+  });
 	$addSticker.addEventListener('click', function() {
+    var $errorName = document.getElementById('error-name'),
+        $errorFile = document.getElementById('error-file');
 	  $stickerForm.reset(); 
 	  $stickerInput.value = '';
 	  $stickerModal.style.display = 'block';
+    $errorName.style.display = $errorFile.style.display = 'none'
 	});
 
   $stickerLink.addEventListener('click', function() {
@@ -158,14 +179,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	        img.style.left = (event.offsetX - 75) + "px";
 	        img.style.top = (event.offsetY - 75) + "px";
 	        
-	        PHOTOAPP.addStickerToPhoto(photoElem.dataset.photoId, addedStickerId, img.src, img.style.left, img.style.top);
+	        PHOTOAPP.addStickerToPhoto(photoElem.dataset.photoId, img.src, img.style.left, img.style.top);
 	        
 	        parent = this;
 
 	        img.onload = function() {
 	          parent.appendChild(img);
 	        };
-	        addedStickerId++;
+	        addedStickerId = PHOTOAPP.getCurrentStickersOnPhoto();
 	      } else if (classList.contains('dropped-sticker')) {
 	        img = PHOTOAPP.currentDraggedImage;
 	        img.style.left = (event.offsetX - 75) + "px";
@@ -192,38 +213,51 @@ document.addEventListener('DOMContentLoaded', function() {
 	    PHOTOAPP.currentDraggedImage = null;
 	  }
 	});
-
+  $stickerInput.addEventListener('keyup', function(e) {
+    var $errorName = document.getElementById('error-name');
+    if(!this.value.trim()) {
+      $errorName.style.display = 'block';
+    } else {
+      $errorName.style.display = 'none';
+    }
+  });
 	$stickerForm.addEventListener('submit', function(e) {
 	  var reader, temp, title, $tempDiv = document.createElement('div'),
+    $errorName = document.getElementById('error-name'),
+    $errorFile = document.getElementById('error-file'),
 	  stickerImg = document.createElement('img'),
 	  $stickTemp = document.createElement('div');
 	  e.preventDefault();
 	  files = $stickerUploadBtn.files;
 	  title = $stickerInput.value.trim();
-	  if(title && files && files.length === 1) {
-	    reader = PHOTOAPP.filesToImgElem(files[0], stickerImg);
-	    reader.onload = function(e) {
-	      stickerImg.src = e.target.result;
-	      stickerImg.dataset.stickerId = stickerId;
-	      $tempDiv.appendChild(stickerImg);
+    if(!title) {
+      $errorName.style.display = 'block';
+      return;
+    }
+    if(!files || files.length === 0) {
+      $errorFile.style.display = 'block';
+      return;
+    }
+    reader = PHOTOAPP.filesToImgElem(files[0], stickerImg);
+    reader.onload = function(e) {
+      stickerImg.src = e.target.result;
+      stickerImg.dataset.stickerId = stickerId;
+      $tempDiv.appendChild(stickerImg);
 
-	      stickerImg.draggable = true;
-	      stickerImg.classList.add('sticker-img');
+      stickerImg.draggable = true;
+      stickerImg.classList.add('sticker-img');
 
-	      temp = $stickerTemplate.innerHTML;
-	      temp = temp.replace('{{stickerImg}}', $tempDiv.innerHTML);
-	      temp = temp.replace('{{title}}', title);
+      temp = $stickerTemplate.innerHTML;
+      temp = temp.replace('{{stickerImg}}', $tempDiv.innerHTML);
+      temp = temp.replace('{{title}}', title);
 
-	      $stickTemp.innerHTML = temp;
+      $stickTemp.innerHTML = temp;
 
-	      $stickerArea.insertBefore($stickTemp.getElementsByClassName('sticker')[0], $stickerArea.firstChild);
+      $stickerArea.insertBefore($stickTemp.getElementsByClassName('sticker')[0], $stickerArea.firstChild);
 
-	      $stickerModal.style.display = 'none';
-	      PHOTOAPP.addLibSticker(stickerId, stickerImg.src, title);
-	      stickerId++;
-	    }
-	    
-
+      $stickerModal.style.display = 'none';
+      PHOTOAPP.addLibSticker(stickerImg.src, title);
+      stickerId = PHOTOAPP.getCurrentLibStickerId();
 	  }
 	});
   
