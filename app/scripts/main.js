@@ -1,5 +1,11 @@
 'use strict';
 (function(PHOTOAPP){
+  var stickers = {};
+  var photos = {};
+
+  PHOTOAPP.photoAdded = false;
+  PHOTOAPP.currentDraggedImage = null;
+
   // Helper function to remove all child nodes of a DOM element
   PHOTOAPP.removeChildNodes = function(node) {
     if(node) {
@@ -9,10 +15,7 @@
     }
     return node;
   }
-  var stickers = {};
-  var photos = {};
-  PHOTOAPP.photoAdded = false;
-  PHOTOAPP.currentDraggedImage = null;
+
   PHOTOAPP.isFileAnImage = function(fileObj) {
     var imageType = false,
         matchString = /^image\//;
@@ -34,46 +37,124 @@
     }
     return reader;
   }
-  PHOTOAPP.addSticker = function(id, srcString) {
-    if(!stickers.id) {
-      stickers.id = srcString;
+  PHOTOAPP.saveItem = function(key, value) {
+    if(localStorage) {
+      localStorage.setItem(key, JSON.stringify(value));
     }
   }
-  PHOTOAPP.deleteSticker = function(id) {
-    if(stickers.id) {
-      stickers.id = null;
+  PHOTOAPP.getSavedItem = function(key) {
+    if(localStorage && localStorage.getItem(key)) {
+      return JSON.parse(localStorage.getItem(key));
     }
   }
-  PHOTOAPP.updateSticker = function(id, srcString) {
-    if(stickers.id && srcString) {
-      stickers.id = srcString;
+  PHOTOAPP.addLibSticker = function(id, srcString, name) {
+    id = id.toString();
+    if(!stickers[id]) {
+      stickers[id] = {};
+      stickers[id].srcString = srcString;
+      stickers[id].name = name;
+      PHOTOAPP.saveItem('stickersLib', stickers);
+      return stickers[id];
     }
+    return false;
   }
-  PHOTOAPP.getSticker = function(id) {
-    return stickers.id
+  PHOTOAPP.deleteLibSticker = function(id) {
+    id = id.toString();
+    if(stickers[id]) {
+      stickers[id] = undefined;
+      PHOTOAPP.saveItem('stickersLib', stickers);
+      return true;
+    }
+    return false;
+  }
+  PHOTOAPP.updateLibSticker = function(id, srcString) {
+    id = id.toString();
+    if(stickers[id] && srcString) {
+      stickers[id].srcString = srcString;
+      PHOTOAPP.saveItem('stickersLib', stickers);
+      return stickers[id];
+    }
+    return false;
+  }
+  PHOTOAPP.getLibSticker = function(id) {
+    return stickers[id.toString()];
+  }
+  PHOTOAPP.getAllLibStickers = function() {
+    return stickers;
   }
   PHOTOAPP.addPhoto = function(id, srcString) {
-    if(!photos.id) {
-      photos.id = srcString
+    id = id.toString();
+    if(!photos[id]) {
+      photos[id] = {};
+      photos[id].srcString = srcString;
+      photos[id].stickers = [];
+      PHOTOAPP.saveItem('photos', photos);
+      return photos[id];
     }
   }
   PHOTOAPP.deletePhoto = function(id) {
-    if(photos.id) {
-      photos.id = null;
+    id = id.toString();
+    if(photos[id]) {
+      photos[id] = null;
+      PHOTOAPP.saveItem('photos', photos);
+      return true;
     }
+    return false;
   }
   PHOTOAPP.updatePhoto = function(id, srcString) {
-    if(photos.id && srcString) {
-      photos.id = srcString;
+    id = id.toString();
+    if(photos[id] && srcString) {
+      photos[id].srcString = srcString;
+      PHOTOAPP.saveItem('photos', photos);
+      return photos[id];
     }
+    return false;
   }
   PHOTOAPP.getPhoto = function(id) {
-    return photos.id;
+    return photos[id.toString()];
+  }
+  PHOTOAPP.getAllPhotos = function() {
+    return photos;
+  }
+  PHOTOAPP.addStickerToPhoto = function(photoId, stickerId, stickerString, left, top) {
+    if(photos[photoId.toString()]) {
+      var stickerObj = {};
+      stickerObj.stickerId = stickerId.toString();
+      stickerObj.srcString = stickerString;
+      stickerObj.left = left;
+      stickerObj.top = top;
+      photos[photoId].stickers.push(stickerObj);
+      PHOTOAPP.saveItem('photos', photos);
+      return photos[photoId];
+    }
+    return false;
+  }
+  PHOTOAPP.updateStickerInPhoto = function(photoId, stickerId, stickerString, left, top) {
+    photoId = photoId.toString();
+    stickerId = stickerId.toString();
+    if(photos[photoId] && photos[photoId].stickers.length) {
+      var stickerArray = photos[photoId].stickers;
+      for(var i = 0; i < stickerArray.length; i++) {
+        if(stickerArray[i].stickerId === stickerId) {
+          if(stickerString)
+            stickerArray[i].srcString = stickerString;
+          if(left)
+            stickerArray[i].left = left;
+          if(top)
+            stickerArray[i].top = top;
+          PHOTOAPP.saveItem('photos', photos);
+          return photos[photoId];
+        }
+      }
+    }
+    return false;
   }
   PHOTOAPP.init = function() {
+
     var files;
     var stickerId = 0;
     var photoId = 0;
+    var addedStickerId = 0;
     var $photoUploadBtn = document.getElementById('photo-upload'),
     $canvasArea = document.getElementById('canvas-area'),
     $stickerArea = document.getElementById('sticker-area'),
@@ -83,12 +164,19 @@
     $stickerInput = document.getElementById('sticker-input'),
     $stickerUploadBtn = document.getElementById('sticker-upload'),
     $stickerTemplate = document.getElementById('sticker-template');
-
+    var initLib = PHOTOAPP.getSavedItem('stickersLib');
+    var initPhotos = PHOTOAPP.getSavedItem('photos');
+    if(initLib) {
+      stickers = initLib;
+    }
+    if(initPhotos) {
+      photos = initPhotos;
+    }
     $stickerArea.addEventListener('click', function(e) {
       if(e.target.classList.contains('sticker-remove')) {
         var stickerImg = e.target.parentElement.getElementsByClassName('sticker-img')[0];
-        PHOTOAPP.deleteSticker(stickerImg.dataset.stickerId);
         e.target.parentElement.parentElement.removeChild(e.target.parentElement);
+        PHOTOAPP.deleteLibSticker(stickerImg.dataset.stickerId);
       }
     });
     $photoUploadBtn.addEventListener('change', function() {
@@ -99,12 +187,15 @@
         reader.onload = function(e) {
           PHOTOAPP.addPhoto(photoId, e.target.result);
           img.dataset.photoId = photoId;
-          photoId++;
           img.src = e.target.result;
           img.classList.add('main-image');
           PHOTOAPP.removeChildNodes($canvasArea);
           $canvasArea.appendChild(img);
+
+          PHOTOAPP.addPhoto(photoId, e.target.result);
+          
           PHOTOAPP.photoAdded = true;
+          photoId++;
         }  
       }
     });
@@ -126,27 +217,45 @@
           PHOTOAPP.currentDraggedImage = event.target;
         }
     });
+    function getCurrentPhotoInCanvas() {
+      var elem;
+      var list = document.getElementsByClassName('main-image');
+      if(list && list.length > 0) {
+        elem = list[0];
+      }
+      return elem;
+    }
     $canvasArea.addEventListener('drop', function(event) {
-      var img, parent, classList;
+      var img, parent, classList, photoElem;
       console.log(event);
       if(PHOTOAPP.photoAdded) {
         event.preventDefault();
         if(PHOTOAPP.currentDraggedImage) {
+          photoElem = getCurrentPhotoInCanvas();
           classList = PHOTOAPP.currentDraggedImage.classList;
+
           if(classList.contains('sticker-img')) {
             img = document.createElement('img');
             img.src = PHOTOAPP.currentDraggedImage.src;
+            img.dataset.id = addedStickerId;
             img.classList.add('dropped-sticker');
             img.style.left = (event.offsetX - 75) + "px";
             img.style.top = (event.offsetY - 75) + "px";
+            
+            PHOTOAPP.addStickerToPhoto(photoElem.dataset.photoId, addedStickerId, img.src, img.style.left, img.style.top);
+            
             parent = this;
+
             img.onload = function() {
-            parent.appendChild(img);
+              parent.appendChild(img);
             };
+            addedStickerId++;
           } else if (classList.contains('dropped-sticker')) {
             img = PHOTOAPP.currentDraggedImage;
             img.style.left = (event.offsetX - 75) + "px";
             img.style.top = (event.offsetY - 75) + "px";
+
+            PHOTOAPP.updateStickerInPhoto(photoElem.dataset.photoId, img.dataset.id, undefined, img.style.left, img.style.top);
           }
         }
         
@@ -178,11 +287,8 @@
       if(title && files && files.length === 1) {
         reader = PHOTOAPP.filesToImgElem(files[0], stickerImg);
         reader.onload = function(e) {
-          PHOTOAPP.addSticker(stickerId, e.target.result);
-
           stickerImg.src = e.target.result;
           stickerImg.dataset.stickerId = stickerId;
-          stickerId++;
           $tempDiv.appendChild(stickerImg);
 
           stickerImg.draggable = true;
@@ -197,6 +303,8 @@
           $stickerArea.insertBefore($stickTemp.getElementsByClassName('sticker')[0], $stickerArea.firstChild);
 
           $stickerModal.style.display = 'none';
+          PHOTOAPP.addLibSticker(stickerId, stickerImg.src, title);
+          stickerId++;
         }
         
 
