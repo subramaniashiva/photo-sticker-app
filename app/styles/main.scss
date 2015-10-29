@@ -72,6 +72,9 @@ body {
 input[type="file"].photo-upload, input[type="file"].sticker-upload {
   display: none;
 }
+.sticker-name-cont {
+  display: none;
+}
 .error-name, .error-file {
   display: none;
 }

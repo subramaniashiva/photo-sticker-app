@@ -116,7 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	      img.classList.add('main-image');
 	      $canvasArea.appendChild(img);
 
-	      PHOTOAPP.addPhoto(e.target.result);
+	      if(!PHOTOAPP.addPhoto(e.target.result)) {
+          alert('Local Storage limit exceed. Changes are not saved in Local Storage');
+        }
 	      
 	      PHOTOAPP.photoAdded = true;
 	      photoId = PHOTOAPP.getCurrentPhotoId();
@@ -133,11 +135,13 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 	$addSticker.addEventListener('click', function() {
     var $errorName = document.getElementById('error-name'),
-        $errorFile = document.getElementById('error-file');
+        $errorFile = document.getElementById('error-file'),
+        $selectedSticker = document.getElementById('sticker-name-cont');
 	  $stickerForm.reset(); 
 	  $stickerInput.value = '';
 	  $stickerModal.style.display = 'block';
-    $errorName.style.display = $errorFile.style.display = 'none'
+    $errorName.style.display = $errorFile.style.display = 'none';
+    $selectedSticker.style.display = 'none';
 	});
 
   $stickerLink.addEventListener('click', function() {
@@ -179,7 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	        img.style.left = (event.offsetX - 75) + "px";
 	        img.style.top = (event.offsetY - 75) + "px";
 	        
-	        PHOTOAPP.addStickerToPhoto(photoElem.dataset.photoId, img.src, img.style.left, img.style.top);
+	        if(!PHOTOAPP.addStickerToPhoto(photoElem.dataset.photoId, img.src, img.style.left, img.style.top)) {
+            alert('Local Storage limit exceed. Changes are not saved in Local Storage');
+          }
 	        
 	        parent = this;
 
@@ -192,7 +198,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	        img.style.left = (event.offsetX - 75) + "px";
 	        img.style.top = (event.offsetY - 75) + "px";
 
-	        PHOTOAPP.updateStickerInPhoto(photoElem.dataset.photoId, img.dataset.id, undefined, img.style.left, img.style.top);
+	        if(!PHOTOAPP.updateStickerInPhoto(photoElem.dataset.photoId, img.dataset.id, undefined, img.style.left, img.style.top)) {
+            alert('Local Storage limit exceed. Changes are not saved in Local Storage');
+          }
 	      }
 	    }
 	    
@@ -221,12 +229,21 @@ document.addEventListener('DOMContentLoaded', function() {
       $errorName.style.display = 'none';
     }
   });
+  $stickerUploadBtn.addEventListener('change', function() {
+    var $selectedSticker = document.getElementById('sticker-name-cont'),
+        $name = document.getElementById('selected-sticker-name'),
+        $errorFile = document.getElementById('error-file');
+    $errorFile.style.display = 'none';
+    $selectedSticker.style.display = 'block';
+    $name.innerHTML = this.files[0].name;
+  });
 	$stickerForm.addEventListener('submit', function(e) {
 	  var reader, temp, title, $tempDiv = document.createElement('div'),
     $errorName = document.getElementById('error-name'),
     $errorFile = document.getElementById('error-file'),
 	  stickerImg = document.createElement('img'),
 	  $stickTemp = document.createElement('div');
+    
 	  e.preventDefault();
 	  files = $stickerUploadBtn.files;
 	  title = $stickerInput.value.trim();
@@ -256,7 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
       $stickerArea.insertBefore($stickTemp.getElementsByClassName('sticker')[0], $stickerArea.firstChild);
 
       $stickerModal.style.display = 'none';
-      PHOTOAPP.addLibSticker(stickerImg.src, title);
+      if(!PHOTOAPP.addLibSticker(stickerImg.src, title)) {
+        alert('Local Storage limit exceed. Changes are not saved in Local Storage');
+      };
       stickerId = PHOTOAPP.getCurrentLibStickerId();
 	  }
 	});

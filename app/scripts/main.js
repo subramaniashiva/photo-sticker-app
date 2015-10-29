@@ -39,9 +39,25 @@
     }
     return reader;
   }
+  PHOTOAPP.isLocalStorageSpaceAvailable = function(value) {
+    var available = true,
+        bytes = 1024 * 1024 * 5,
+        str = '';
+    value = value || '';
+    bytes = 1024 * 1024 * 5;
+    str = unescape(encodeURIComponent(JSON.stringify(localStorage)) + JSON.stringify(value));
+    if(bytes - str.length > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   PHOTOAPP.saveItem = function(key, value) {
-    if(localStorage) {
-      localStorage.setItem(key, JSON.stringify(value));
+    if(localStorage && PHOTOAPP.isLocalStorageSpaceAvailable(value)) {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } else {
+      return false;
     }
   }
   PHOTOAPP.getSavedItem = function(key) {
@@ -55,10 +71,9 @@
       stickers[id] = {};
       stickers[id].srcString = srcString;
       stickers[id].name = name;
-      PHOTOAPP.saveItem('stickersLib', stickers);
-      currentLibStickerId++;
-      PHOTOAPP.saveItem('stickersLibId', currentLibStickerId);
-      return stickers[id];
+      if(PHOTOAPP.saveItem('stickersLib', stickers) && PHOTOAPP.saveItem('stickersLibId', ++currentLibStickerId)) {
+        return stickers[id];
+      }
     }
     return false;
   }
@@ -66,8 +81,9 @@
     id = id.toString();
     if(stickers[id]) {
       stickers[id] = undefined;
-      PHOTOAPP.saveItem('stickersLib', stickers);
-      return true;
+      if(PHOTOAPP.saveItem('stickersLib', stickers)) {
+        return true;
+      }
     }
     return false;
   }
@@ -75,8 +91,9 @@
     id = id.toString();
     if(stickers[id] && srcString) {
       stickers[id].srcString = srcString;
-      PHOTOAPP.saveItem('stickersLib', stickers);
-      return stickers[id];
+      if(PHOTOAPP.saveItem('stickersLib', stickers)) {
+        return stickers[id];
+      }
     }
     return false;
   }
@@ -92,18 +109,20 @@
       photos[id] = {};
       photos[id].srcString = srcString;
       photos[id].stickers = [];
-      PHOTOAPP.saveItem('photos', photos);
-      currentPhotoId++;
-      PHOTOAPP.saveItem('photoId', currentPhotoId);
-      return photos[id];
+      if(PHOTOAPP.saveItem('photos', photos) && PHOTOAPP.saveItem('photoId', ++currentPhotoId)) {
+        return photos[id];
+      } 
     }
+    return false;
   }
   PHOTOAPP.deletePhoto = function(id) {
     id = id.toString();
     if(photos[id]) {
       photos[id] = undefined;
-      PHOTOAPP.saveItem('photos', photos);
-      return true;
+
+      if(PHOTOAPP.saveItem('photos', photos)) {
+        return true;
+      }
     }
     return false;
   }
@@ -111,8 +130,9 @@
     id = id.toString();
     if(photos[id] && srcString) {
       photos[id].srcString = srcString;
-      PHOTOAPP.saveItem('photos', photos);
-      return photos[id];
+      if(PHOTOAPP.saveItem('photos', photos)) {
+        return photos[id];
+      }
     }
     return false;
   }
@@ -130,10 +150,9 @@
       stickerObj.left = left;
       stickerObj.top = top;
       photos[photoId].stickers.push(stickerObj);
-      PHOTOAPP.saveItem('photos', photos);
-      currentStickersOnPhoto++;
-      PHOTOAPP.saveItem('stickersOnPhotoId', currentStickersOnPhoto);
-      return photos[photoId];
+      if(PHOTOAPP.saveItem('photos', photos) && PHOTOAPP.saveItem('stickersOnPhotoId', ++currentStickersOnPhoto)) {
+        return photos[photoId];
+      }
     }
     return false;
   }
@@ -150,8 +169,9 @@
             stickerArray[i].left = left;
           if(top)
             stickerArray[i].top = top;
-          PHOTOAPP.saveItem('photos', photos);
-          return photos[photoId];
+          if(PHOTOAPP.saveItem('photos', photos)) {
+            return photos[photoId];
+          }
         }
       }
     }
