@@ -69,6 +69,9 @@ body {
 .main-container {
   border-right: 1px solid #A5A5A5;
 }
+input[type="file"].photo-upload, input[type="file"].sticker-upload {
+  display: none;
+}
 .canvas-area {
   display: inline-block;
   width: auto;
@@ -84,7 +87,7 @@ body {
 .main-image {
   max-width: 100%;
 }
-.sticker-template {
+.sticker-template, .main-image-template, .sticker-img-template, .photo-sticker-template {
   display: none;
 }
 .sticker {

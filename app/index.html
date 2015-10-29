@@ -36,7 +36,8 @@
         <div class="col-md-10">
           <div class="main-container">
             <h3>Please choose your photo</h3>
-            <input type="file" id="photo-upload" accept="image/*">
+            <a href="javascript:void(0)" id="choose-photo-link">Choose Photo</a>
+            <input type="file" id="photo-upload" class="photo-upload" accept="image/*">
             <div id="canvas-area" ondragover="event.preventDefault();" class="canvas-area">
             </div>
           </div>
@@ -64,7 +65,8 @@
           </div>
           <div class="form-group">
               <div class="col-sm-12">
-                  <input type="file" id="sticker-upload" accept="image/*" required />
+                  <a href="javascript:void(0)" id="choose-sticker-link">Select image</a>
+                  <input type="file" id="sticker-upload" class="sticker-upload" accept="image/*" required />
               </div>
           </div>
           <div class="form-group">
@@ -84,6 +86,15 @@
         <span class="glyphicon glyphicon-remove sticker-remove" aria-hidden="true"></span>
       </div>
     </div>
+    <div id='sticker-img-template' class="sticker-img-template">
+      <img src={{srcString}} data-sticker-id={{id}} draggable="true" class="sticker-img" />
+    </div>
+    <div id="main-image-template" class="main-image-template">
+      <img data-photo-id={{id}} class="main-image" src={{srcString}} />
+    </div>
+    <div id="photo-sticker-template" class="photo-sticker-template">
+      <img src={{srcString}} data-id={{stickerId}} class="dropped-sticker" style="left:{{left}};top:{{top}}" />
+    </div>
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
     <!-- endbower -->
@@ -92,6 +103,7 @@
 
     <!-- build:js scripts/main.js -->
     <script src="scripts/main.js"></script>
+    <script src="scripts/interactions.js"></script>
     <!-- endbuild -->
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
