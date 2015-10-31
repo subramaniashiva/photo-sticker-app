@@ -66,7 +66,7 @@
   */
   PHOTOAPP.filesToImgElem = function(fileObj) {
     var reader;
-    if(fileObj) {
+    if(fileObj && PHOTOAPP.isFileAnImage(fileObj)) {
       reader = new FileReader();
       reader.readAsDataURL(fileObj);
     }

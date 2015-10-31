@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     	$stickerForm = document.getElementById('sticker-form'),
     	$stickerInput = document.getElementById('sticker-input'),
       $stickerUploadBtn = document.getElementById('sticker-upload'),
-      $stickerLink = document.getElementById('choose-sticker-link');
+      $stickerLink = document.getElementById('choose-sticker-link'),
+      $stickerSubmit = document.getElementById('sticker-sumbit');
 
   // Function to initialize photos into application DOM from localStorage (if present)
   function initPhotos() {
@@ -69,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
           
           // Update the main app area with the saved photos and stickers
           $canvasArea.innerHTML = imgTemplate + tempPhotoStickers;
+          $canvasArea.style.display = 'inline-block';
         }
       }
       
@@ -137,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         img.classList.add('main-image');
         // Append the image element to DOM
         $canvasArea.appendChild(img);
+        $canvasArea.style.display = 'inline-block';
         // Add the photo to application
         if(!PHOTOAPP.addPhoto(e.target.result)) {
           alert(STORAGE_ERR_MSG);
@@ -308,6 +311,7 @@ document.addEventListener('DOMContentLoaded', function() {
     removeCurrentPhoto();
     DOMHELPER.enable($photoLink);
     DOMHELPER.disable(this);
+    $canvasArea.style.display = 'none';
   });
 
 
@@ -341,13 +345,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // Event listener when a sticker image is uploaded in the add sticker popup
   // This function will not add the sticker img to library directly. It just verifies the uploaded image
   // This image will be uploaded to library only on form submit
-  $stickerUploadBtn.addEventListener('change', function() {
+  $stickerUploadBtn.addEventListener('change', function(e) {
     var $selectedSticker = document.getElementById('sticker-name-cont'),
         $name = document.getElementById('selected-sticker-name'),
         $errorFile = document.getElementById('error-file');
     $errorFile.style.display = 'none';
     $selectedSticker.style.display = 'block';
     $name.innerHTML = this.files[0].name;
+    if($stickerInput.value.trim()) {
+      DOMHELPER.enable($stickerSubmit);
+    }
+    e.preventDefault();
   });
 
   // Triggering the add sticker file upload event listener
@@ -370,6 +378,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	  $stickerModal.style.display = 'block';
     $errorName.style.display = $errorFile.style.display = 'none';
     $selectedSticker.style.display = 'none';
+    DOMHELPER.disable($stickerSubmit);
 	});
 
   // Event listener for closing the popup when clicking anywhere outside the popup content
@@ -384,8 +393,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var $errorName = document.getElementById('error-name');
     if(!this.value.trim()) {
       $errorName.style.display = 'block';
+      DOMHELPER.disable($stickerSubmit);
     } else {
       $errorName.style.display = 'none';
+      if($stickerUploadBtn.files.length) {
+        DOMHELPER.enable($stickerSubmit);
+      }
     }
   });
 
