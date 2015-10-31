@@ -1,6 +1,6 @@
 'use strict';
 /* PhotoApp module
-  This module is not dependent on DOM. Can be used with any other UI
+  This module is not dependent on DOM. Can be used with any other UI flow
 */
 (function(PHOTOAPP){
   // Local variables
