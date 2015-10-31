@@ -1,13 +1,43 @@
 'use strict';
+/* PhotoApp module
+  This module is not dependent on DOM. Can be used with any other UI
+*/
 (function(PHOTOAPP){
+  // Local variables
+
+  /*
+    A collection of stickers added to the library
+    Structure of a sticker is 
+    id : {
+      srcString: 'source string for the image',
+      name: 'name of sticker'
+    }
+  */
   var stickers = {};
+  /*
+    A collection of all the photos added to the library
+    Structure of a photos is 
+    id: {
+      srcString: 'source string for the image',
+      stickers: [{
+        id: {
+          srcString: 'source string for the sticker added on the image'
+          stickerId: 'unique sticker id. This id is different from the sticker id above'
+          left: 'position in px',
+          top: 'position in px'
+        }
+      }]
+    }
+  */
   var photos = {};
   var currentPhotoId = 0;
   var currentLibStickerId = 0;
   var currentStickersOnPhoto = 0;
 
+
   PHOTOAPP.photoAdded = false;
   PHOTOAPP.currentDraggedImage = null;
+
   PHOTOAPP.getCurrentPhotoId = function() {
     return currentPhotoId;
   };
@@ -17,7 +47,9 @@
   PHOTOAPP.getCurrentStickersOnPhoto = function() {
     return currentStickersOnPhoto;
   }
-
+  /* Checks whether the give fileobj is an image
+     Returns a boolean value
+  */
   PHOTOAPP.isFileAnImage = function(fileObj) {
     var imageType = false,
         matchString = /^image\//;
@@ -26,19 +58,23 @@
     }
     return imageType;
   }
-  PHOTOAPP.filesToImgElem = function(fileObj, img) {
+  /*
+    Converts a file blob into image.
+    This function returns a FileReader.
+    Users can then use reader.onload function to get the image
+  */
+  PHOTOAPP.filesToImgElem = function(fileObj) {
     var reader;
     if(fileObj) {
       reader = new FileReader();
       reader.readAsDataURL(fileObj);
-
-      //img.src = window.URL.createObjectURL(fileObj);
-      //img.onload = function() {
-      //  window.URL.revokeObjectURL(this.src);
-      //}
     }
     return reader;
   }
+  /*  
+    Checks whether the local storage space is available
+    This method addumes that the max localstorage space is 5 MB
+  */
   PHOTOAPP.isLocalStorageSpaceAvailable = function(value) {
     var available = true,
         bytes = 1024 * 1024 * 5,
@@ -52,6 +88,11 @@
       return false;
     }
   }
+  /*
+    Saves a key, value pair into the localStorage
+    For full fledged application, this method can be modified to store into a DB
+    and return a promise instead of a boolean now
+  */
   PHOTOAPP.saveItem = function(key, value) {
     if(localStorage && PHOTOAPP.isLocalStorageSpaceAvailable(value)) {
         localStorage.setItem(key, JSON.stringify(value));
@@ -60,11 +101,18 @@
       return false;
     }
   }
+  /*
+    Gets a saved item from localstorage based on the key
+  */
   PHOTOAPP.getSavedItem = function(key) {
     if(localStorage && localStorage.getItem(key)) {
       return JSON.parse(localStorage.getItem(key));
     }
   }
+  /*
+    Adds a sticker to the library
+    This method calls the saveItem above
+  */
   PHOTOAPP.addLibSticker = function(srcString, name) {
     var id = currentLibStickerId;
     if(!stickers[id]) {
@@ -77,6 +125,10 @@
     }
     return false;
   }
+  /*
+    Deletes a sticker from the library based on the id
+    This method returns a boolean
+  */
   PHOTOAPP.deleteLibSticker = function(id) {
     id = id.toString();
     if(stickers[id]) {
@@ -87,22 +139,42 @@
     }
     return false;
   }
-  PHOTOAPP.updateLibSticker = function(id, srcString) {
+  /*
+    Updates a sticker in the library based on the id
+  */
+  PHOTOAPP.updateLibSticker = function(id, srcString, name) {
     id = id.toString();
-    if(stickers[id] && srcString) {
-      stickers[id].srcString = srcString;
+    if(stickers[id]) {
+      if(srcString) {
+        stickers[id].srcString = srcString;
+      }
+      if(name) {
+        stickers[id].name = name;
+      }
       if(PHOTOAPP.saveItem('stickersLib', stickers)) {
         return stickers[id];
       }
     }
     return false;
   }
+  /*
+    This method returns an object containing the sticker 
+    based on the id provided
+  */
   PHOTOAPP.getLibSticker = function(id) {
     return stickers[id.toString()];
   }
+  /*
+    This method returns an object containing all the stickers in the library
+  */
   PHOTOAPP.getAllLibStickers = function() {
     return stickers;
   }
+  /*
+    Adds a photo to the application
+    Returns the created photo object if successful
+    Return false if fails
+  */
   PHOTOAPP.addPhoto = function(srcString) {
     var id = currentPhotoId;
     if(!photos[id]) {
@@ -115,6 +187,10 @@
     }
     return false;
   }
+  /*
+    Deletes a photo from the application
+    Returns a boolean
+  */
   PHOTOAPP.deletePhoto = function(id) {
     id = id.toString();
     if(photos[id]) {
@@ -126,6 +202,9 @@
     }
     return false;
   }
+  /*
+    Updates a photo in the application based on the id
+  */
   PHOTOAPP.updatePhoto = function(id, srcString) {
     id = id.toString();
     if(photos[id] && srcString) {
@@ -136,12 +215,24 @@
     }
     return false;
   }
+  /*
+    Returns an object which contains the photo in the application 
+    based on the id
+  */
   PHOTOAPP.getPhoto = function(id) {
     return photos[id.toString()];
   }
+  /*
+    Returns all the photos in the application based on the id
+  */
   PHOTOAPP.getAllPhotos = function() {
     return photos;
   }
+  /*
+    Adds a sticker to the photo based on the photoid
+    Returns the photo object if successful
+    Returns false otherwise
+  */
   PHOTOAPP.addStickerToPhoto = function(photoId, stickerString, left, top) {
     if(photos[photoId.toString()]) {
       var stickerObj = {};
@@ -156,6 +247,11 @@
     }
     return false;
   }
+  /*
+    Updates a sticker to the photo based on the photoid and stickerid
+    Returns the photo object if successful
+    Returns false otherwise
+  */
   PHOTOAPP.updateStickerInPhoto = function(photoId, stickerId, stickerString, left, top) {
     photoId = photoId.toString();
     stickerId = stickerId.toString();
@@ -177,27 +273,17 @@
     }
     return false;
   }
+  /*
+    Initialize this module
+    Gets the sticker objects for library and photo objects from the local storage
+    and initializes the respective private variables
+  */
   PHOTOAPP.init = function() {
-    var initLib = PHOTOAPP.getSavedItem('stickersLib');
-    var initPhotos = PHOTOAPP.getSavedItem('photos');
-    var photoCount = PHOTOAPP.getSavedItem('photoId'),
-        libStickerCount = PHOTOAPP.getSavedItem('stickersLibId'),
-        stickersOnPhotoCount = PHOTOAPP.getSavedItem('stickersOnPhotoId');
-    if(initLib) {
-      stickers = initLib;
-    }
-    if(initPhotos) {
-      photos = initPhotos;
-    }
-    if(photoCount) {
-      currentPhotoId = photoCount;
-    }
-    if(libStickerCount) {
-      currentLibStickerId = libStickerCount;
-    }
-    if(stickersOnPhotoCount) {
-      currentStickersOnPhoto = stickersOnPhotoCount;
-    }
+    stickers = PHOTOAPP.getSavedItem('stickersLib') || {};
+    photos = PHOTOAPP.getSavedItem('photos') || {};
+    currentPhotoId = PHOTOAPP.getSavedItem('photoId') || 0;
+    currentLibStickerId = PHOTOAPP.getSavedItem('stickersLibId') || 0;
+    currentStickersOnPhoto = PHOTOAPP.getSavedItem('stickersOnPhotoId') || 0;
   }
   PHOTOAPP.init();
 
