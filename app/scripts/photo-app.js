@@ -53,7 +53,7 @@
   */
   PHOTOAPP.isFileAnImage = function(fileObj) {
     var imageType = false,
-        matchString = /^image\//;
+      matchString = /^image\//;
     if(fileObj && matchString.test(fileObj.type)) {
       imageType = true; 
     }
@@ -74,12 +74,11 @@
   }
   /*  
     Checks whether the local storage space is available
-    This method addumes that the max localstorage space is 5 MB
+    This method assumes that the max localstorage space is 5 MB
   */
   PHOTOAPP.isLocalStorageSpaceAvailable = function(value) {
-    var available = true,
-        bytes = 1024 * 1024 * 5,
-        str = '';
+    var bytes = 1024 * 1024 * 5,
+      str = '';
     value = value || '';
     bytes = 1024 * 1024 * 5;
     str = unescape(encodeURIComponent(JSON.stringify(localStorage)) + JSON.stringify(value));
@@ -96,8 +95,8 @@
   */
   PHOTOAPP.saveItem = function(key, value) {
     if(localStorage && PHOTOAPP.isLocalStorageSpaceAvailable(value)) {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
     } else {
       return false;
     }

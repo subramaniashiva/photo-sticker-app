@@ -43,12 +43,14 @@
               <button id="choose-photo-link" class="btn btn-success"><span class="glyphicon glyphicon-search"></span>&nbsp;Upload Photo</button>
               <input type="file" id="photo-upload" class="photo-upload hide" accept="image/*">
             </div>
+            <!-- Main Image Container -->
             <div class="img-container">
               <div id="canvas-area" ondragover="event.preventDefault();" class="canvas-area">
             </div>
             </div>
           </div>
         </div>
+        <!-- Sticker Container -->
         <div class="col-md-2 sticker-lib">
           <h3>Sticker Library</h3>
           <hr />
@@ -62,7 +64,7 @@
         <p><span class="glyphicon glyphicon-thumbs-up"></span> No copyright :) Feel free to add/edit</p>
       </div>
     </div>
-    
+    <!-- Modal for adding sticker -->
     <div id="sticker-modal" class="sticker-modal">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -96,7 +98,7 @@
         </div>
       </div>
     </div>
-
+    <!-- Templates for sticker images and main image. Will be used in JS -->
     <div id="sticker-template" class="sticker-template hide">
       <div class="sticker">
         {{stickerImg}}
