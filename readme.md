@@ -24,7 +24,7 @@ Features
  - Uses three JS files
 	 - **photo-app.js** - This file acts as a model. Photos, stickers in library and their positions on photo are set here. This file acts a data store with getter and setters and it is testable.
 	 - **dom-helper.js** - Since I have not used jQuery, this file will contain some useful DOM operations that will be used by the application.
-	 - **interactions.js** - This file acts a View. All the user interaction, adding, updating DOM are handled in this file.
+	 - **interactions.js** - This file acts a Controller. All the user interactions, adding, updating DOM based on logic are handled in this file.
 
 Future Improvements
 -------------
@@ -32,4 +32,5 @@ Future Improvements
  - Resize the dropped sticker
  - Save the image once stickers are dropped
  - Add Images from URL
+ - Add a loading icon when the file is being uploaded
  - Adding test cases
