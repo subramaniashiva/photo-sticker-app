@@ -84,11 +84,13 @@ input[type="file"].photo-upload, input[type="file"].sticker-upload {
   height: auto;
   background: #ccc;
   position: relative;
+  overflow: hidden;
 }
 .dropped-sticker {
   position: absolute;
   width: 150px;
   height: 150px;
+  z-index: 0
 }
 .main-image {
   max-width: 100%;

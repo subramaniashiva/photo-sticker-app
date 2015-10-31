@@ -1,21 +1,15 @@
 'use strict';
-(function(DOMHELPER) {
-  // Helper function to remove all child nodes of a DOM element
-  DOMHELPER.removeChildNodes = function(node) {
-    if (node) {
-        while (node.firstChild) {
-            node.removeChild(node.firstChild);
-        }
-    }
-    return node;
-  }
-})(window.DOMHELPER = window.DOMHELPER || {});
-
+/*
+  All the user interactions on the app is configured here
+  This file is dependent on photo-app.js and dom-helper.js
+*/
 document.addEventListener('DOMContentLoaded', function() {
 	var files;
 	var stickerId = PHOTOAPP.getCurrentLibStickerId();
 	var photoId = PHOTOAPP.getCurrentPhotoId();
 	var addedStickerId = PHOTOAPP.getCurrentStickersOnPhoto();
+
+
 	var $photoUploadBtn = document.getElementById('photo-upload'),
 	$canvasArea = document.getElementById('canvas-area'),
 	$stickerArea = document.getElementById('sticker-area'),
@@ -180,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	        img.src = PHOTOAPP.currentDraggedImage.src;
 	        img.dataset.id = addedStickerId;
 	        img.classList.add('dropped-sticker');
+          console.log('event is ', event);
 	        img.style.left = (event.offsetX - 75) + "px";
 	        img.style.top = (event.offsetY - 75) + "px";
 	        
@@ -195,8 +190,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	        addedStickerId = PHOTOAPP.getCurrentStickersOnPhoto();
 	      } else if (classList.contains('dropped-sticker')) {
 	        img = PHOTOAPP.currentDraggedImage;
-	        img.style.left = (event.offsetX - 75) + "px";
-	        img.style.top = (event.offsetY - 75) + "px";
+          console.log('event is ', event);
+          if(event.toElement.classList.contains('dropped-sticker')) {
+            img.style.left = parseInt(event.toElement.style.left, 10) + (event.offsetX - 75) + "px";
+            img.style.top = parseInt(event.toElement.style.top, 10) + (event.offsetY - 75) + "px";
+            img.style.zIndex = (parseInt(getComputedStyle(event.toElement).getPropertyValue("z-index")) + 1).toString();
+          } else {
+            img.style.left = (event.offsetX - 75) + "px";
+            img.style.top = (event.offsetY - 75) + "px";
+          }
 
 	        if(!PHOTOAPP.updateStickerInPhoto(photoElem.dataset.photoId, img.dataset.id, undefined, img.style.left, img.style.top)) {
             alert('Local Storage limit exceed. Changes are not saved in Local Storage');
