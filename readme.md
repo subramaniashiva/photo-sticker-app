@@ -10,6 +10,7 @@ Running the app
  - `npm install && bower install`
  - `grunt serve` for running the server
  - `grunt build` for generating dist version
+ - `grunt test` for running test cases
 
 Features
 -------------
