@@ -22,6 +22,7 @@ DOMHELPER.domReady(function() {
   var $photoUploadBtn = DOMHELPER.getElemById('photo-upload'),
     $startOver = DOMHELPER.getElemById('start-over'),
     $photoLink = DOMHELPER.getElemById('choose-photo-link'),
+    $savePhoto = DOMHELPER.getElemById('save-photo'),
     $canvasArea = DOMHELPER.getElemById('canvas-area'),
 
     // DOM elements related to stickers
@@ -430,7 +431,11 @@ DOMHELPER.domReady(function() {
       PHOTOAPP.currentDraggedImage = null;
     }
   });
-
+  $savePhoto.addEventListener('click', function() {
+    if(PHOTOAPP.photoAdded) {
+      alert('Will be implemented soon');
+    }
+  });
   // Initialize the DOM with stored photos and stickers
   initApplicationDom();
 
